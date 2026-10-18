@@ -1,0 +1,16 @@
+# Dependencias y compilación de Angular
+/node_modules
+/dist
+/out-tsc
+/.angular/cache
+.sass-cache/
+
+# Editores
+.vscode/*
+!.vscode/extensions.json
+.idea/
+
+# Sistema
+.DS_Store
+Thumbs.db
+npm-debug.log

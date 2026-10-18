@@ -1,0 +1,152 @@
+:root {
+  --fondo: #f6f1e9;
+  --superficie: #fffdf8;
+  --tinta: #2b2118;
+  --muted: #7a6a5c;
+  --borde: #e6dccd;
+  --acento: #b5532b;
+  --acento-osc: #8f3f1f;
+  --verde: #2f7d4f;
+  --azul: #2d5f8f;
+  --ambar: #a86a12;
+  --rojo: #a63232;
+  --radio: 14px;
+  --sombra: 0 1px 2px rgba(43, 33, 24, 0.06), 0 6px 20px rgba(43, 33, 24, 0.06);
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--fondo);
+  color: var(--tinta);
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+h1, h2, h3 { font-family: 'Fraunces', Georgia, serif; line-height: 1.15; margin: 0 0 6px; }
+h1 { font-size: 2.1rem; }
+h2 { font-size: 1.3rem; }
+h3 { font-size: 1.05rem; }
+a { color: var(--acento); }
+code { background: #efe6d8; padding: 1px 6px; border-radius: 6px; font-size: 0.85em; }
+.muted { color: var(--muted); }
+
+/* Barra superior */
+.barra {
+  display: flex; align-items: center; gap: 24px; flex-wrap: wrap;
+  padding: 14px 32px; background: var(--superficie); border-bottom: 1px solid var(--borde);
+  position: sticky; top: 0; z-index: 10;
+}
+.marca {
+  display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--tinta);
+  font-family: 'Fraunces', serif; font-size: 1.3rem; font-weight: 700;
+}
+.logo {
+  display: grid; place-items: center; width: 34px; height: 34px; border-radius: 10px;
+  background: var(--acento); color: #fff; font-size: 1.1rem;
+}
+.menu { display: flex; gap: 6px; }
+.menu a { padding: 8px 14px; border-radius: 999px; text-decoration: none; color: var(--tinta); font-weight: 500; }
+.menu a:hover { background: #f1e8db; }
+.menu a.activo { background: var(--tinta); color: #fff; }
+.usuario { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+.correo { font-size: 0.9rem; color: var(--muted); }
+
+.chip {
+  display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: 0.75rem; font-weight: 600;
+  letter-spacing: 0.04em; background: #e3eef6; color: var(--azul);
+}
+.chip-admin { background: #f7e1d6; color: var(--acento-osc); }
+
+/* Botones */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  padding: 10px 18px; border-radius: 10px; border: 1px solid var(--acento);
+  background: var(--acento); color: #fff; font: inherit; font-weight: 600;
+  cursor: pointer; text-decoration: none; transition: background 0.15s;
+}
+.btn:hover { background: var(--acento-osc); }
+.btn:disabled { opacity: 0.6; cursor: default; }
+.btn-sec { background: transparent; color: var(--acento); }
+.btn-sec:hover { background: #f7e9df; }
+.btn-peq { padding: 6px 12px; font-size: 0.85rem; }
+.btn-ancho { width: 100%; margin-top: 12px; }
+.mini {
+  width: 26px; height: 26px; border-radius: 8px; border: 1px solid var(--borde);
+  background: var(--superficie); cursor: pointer; font: inherit;
+}
+
+/* Contenido */
+.contenido { max-width: 1100px; margin: 0 auto; padding: 32px; }
+.cabecera { margin-bottom: 24px; }
+.fila { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.acciones { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 18px; }
+
+.tarjeta {
+  background: var(--superficie); border: 1px solid var(--borde);
+  border-radius: var(--radio); padding: 20px; box-shadow: var(--sombra);
+}
+
+/* Inicio */
+.hero { padding: 48px 0 24px; max-width: 680px; }
+.hero h1 { font-size: 3rem; }
+.eyebrow { text-transform: uppercase; letter-spacing: 0.12em; font-size: 0.75rem; color: var(--acento); font-weight: 600; }
+.lead { font-size: 1.1rem; color: var(--muted); }
+.flujo { margin-top: 32px; padding-top: 24px; border-top: 1px solid var(--borde); max-width: 680px; }
+.flujo ol { padding-left: 20px; color: var(--muted); }
+.flujo li { margin: 6px 0; }
+
+/* Catálogo */
+.layout-catalogo { display: grid; grid-template-columns: 1fr 320px; gap: 24px; align-items: start; }
+.grilla { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px; }
+.producto .icono { font-size: 2rem; margin-bottom: 8px; }
+.producto p { margin: 0 0 14px; font-size: 0.9rem; }
+.precio { font-weight: 600; }
+.carrito { position: sticky; top: 90px; }
+.lineas { list-style: none; padding: 0; margin: 12px 0; }
+.lineas li { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px dashed var(--borde); font-size: 0.9rem; }
+.cantidad { display: flex; align-items: center; gap: 8px; }
+.total { display: flex; justify-content: space-between; font-size: 1.1rem; margin-top: 8px; }
+
+/* Avisos */
+.aviso { margin-top: 14px; padding: 12px 14px; border-radius: 10px; font-size: 0.9rem; }
+.aviso.ok { background: #e4f2e9; color: var(--verde); }
+.aviso.error { background: #f8e3e3; color: var(--rojo); margin-bottom: 16px; }
+
+/* Órdenes */
+.buscador { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; }
+.buscador input {
+  flex: 1; max-width: 340px; padding: 9px 12px; border-radius: 10px;
+  border: 1px solid var(--borde); font: inherit; background: var(--superficie);
+}
+.lista { display: grid; gap: 16px; }
+.vacio { text-align: center; color: var(--muted); }
+.items { list-style: none; padding: 0; margin: 14px 0; }
+.items li { display: flex; justify-content: space-between; padding: 4px 0; font-size: 0.9rem; }
+.pie-orden { border-top: 1px solid var(--borde); padding-top: 12px; }
+.despacho {
+  margin-top: 14px; padding: 12px 14px; border-radius: 10px; background: #f4ede2; font-size: 0.9rem;
+}
+.despacho .acciones { margin-top: 10px; }
+
+.estado {
+  display: inline-block; padding: 3px 10px; border-radius: 999px; font-size: 0.78rem;
+  font-weight: 600; text-transform: capitalize; background: #ece4d8; color: var(--muted);
+}
+.estado[data-estado='CREADA'] { background: #ece4d8; color: var(--tinta); }
+.estado[data-estado='EN_PREPARACION'] { background: #f8ecd6; color: var(--ambar); }
+.estado[data-estado='DESPACHADA'], .estado[data-estado='DESPACHADO'] { background: #e1ecf6; color: var(--azul); }
+.estado[data-estado='ENTREGADA'], .estado[data-estado='ENTREGADO'] { background: #e4f2e9; color: var(--verde); }
+.estado[data-estado='CANCELADA'], .estado[data-estado='CANCELADO'] { background: #f8e3e3; color: var(--rojo); }
+
+.pie { text-align: center; padding: 24px; color: var(--muted); font-size: 0.8rem; }
+
+@media (max-width: 800px) {
+  .barra { padding: 12px 16px; }
+  .contenido { padding: 20px 16px; }
+  .layout-catalogo { grid-template-columns: 1fr; }
+  .carrito { position: static; }
+  .hero h1 { font-size: 2.2rem; }
+}
