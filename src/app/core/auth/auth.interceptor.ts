@@ -12,7 +12,8 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const auth = inject(AuthService);
   const token = auth.accessToken();
 
-  const esLlamadaAlApi = req.url.startsWith(`${environment.apiUrl}/ordenes`) || req.url.startsWith(`${environment.apiUrl}/despachos`);
+  const rutasProtegidas = ['/ordenes', '/despachos', '/carrito'];
+  const esLlamadaAlApi = rutasProtegidas.some((ruta) => req.url.startsWith(`${environment.apiUrl}${ruta}`));
   const peticion =
     token && esLlamadaAlApi
       ? req.clone({ setHeaders: { Authorization: `Bearer ${token}` } })

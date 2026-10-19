@@ -1,10 +1,11 @@
 import { CurrencyPipe } from '@angular/common';
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { Observable } from 'rxjs';
 import { AuthService } from '../../core/auth/auth.service';
+import { CarritoService } from '../../core/api/carrito.service';
 import { mensajeDeError } from '../../core/api/errores';
-import { Orden, Producto } from '../../core/api/modelos';
-import { OrdenesService } from '../../core/api/ordenes.service';
+import { Carrito, CheckoutResponse, Producto } from '../../core/api/modelos';
 
 const PRODUCTOS: Producto[] = [
   { id: 1, nombre: 'Café de grano 500 g', descripcion: 'Tueste medio, origen Colombia.', precio: 8990, icono: '☕' },
@@ -15,13 +16,15 @@ const PRODUCTOS: Producto[] = [
   { id: 6, nombre: 'Chocolate amargo 70%', descripcion: 'Barra de 100 g.', precio: 2490, icono: '🍫' },
 ];
 
+const CARRITO_VACIO: Carrito = { items: [], unidades: 0, total: 0 };
+
 @Component({
   selector: 'app-catalogo',
   imports: [CurrencyPipe, RouterLink],
   template: `
     <div class="cabecera">
       <h1>Catálogo</h1>
-      <p class="muted">Agrega productos al carrito y confirma tu compra.</p>
+      <p class="muted">Agrega productos al carrito y confirma tu compra. Tu carrito se guarda en la nube.</p>
     </div>
 
     <div class="layout-catalogo">
@@ -33,7 +36,7 @@ const PRODUCTOS: Producto[] = [
             <p class="muted">{{ p.descripcion }}</p>
             <div class="fila">
               <span class="precio">{{ p.precio | currency: 'CLP' : 'symbol-narrow' : '1.0-0' }}</span>
-              <button class="btn btn-peq" (click)="agregar(p.id)">Agregar</button>
+              <button class="btn btn-peq" [disabled]="ocupado()" (click)="agregar(p)">Agregar</button>
             </div>
           </article>
         }
@@ -41,33 +44,36 @@ const PRODUCTOS: Producto[] = [
 
       <aside class="tarjeta carrito">
         <h2>Carrito</h2>
-        @if (lineas().length === 0) {
+        @if (cargando()) {
+          <p class="muted">Cargando carrito…</p>
+        } @else if (carrito().items.length === 0) {
           <p class="muted">Aún no agregas productos.</p>
         } @else {
           <ul class="lineas">
-            @for (l of lineas(); track l.producto.id) {
+            @for (l of carrito().items; track l.productoId) {
               <li>
-                <span>{{ l.producto.nombre }}</span>
+                <span>{{ l.nombreProducto }}</span>
                 <span class="cantidad">
-                  <button class="mini" (click)="quitar(l.producto.id)">−</button>
+                  <button class="mini" [disabled]="ocupado()" (click)="quitar(l.productoId)">−</button>
                   {{ l.cantidad }}
-                  <button class="mini" (click)="agregar(l.producto.id)">+</button>
+                  <button class="mini" [disabled]="ocupado()" (click)="agregarPorId(l.productoId)">+</button>
                 </span>
               </li>
             }
           </ul>
           <div class="total">
             <span>Total</span>
-            <strong>{{ total() | currency: 'CLP' : 'symbol-narrow' : '1.0-0' }}</strong>
+            <strong>{{ carrito().total | currency: 'CLP' : 'symbol-narrow' : '1.0-0' }}</strong>
           </div>
-          <button class="btn btn-ancho" [disabled]="enviando()" (click)="comprar()">
+          <button class="btn btn-ancho" [disabled]="ocupado()" (click)="comprar()">
             {{ enviando() ? 'Enviando…' : 'Comprar' }}
           </button>
         }
 
-        @if (ordenCreada(); as orden) {
+        @if (compra(); as c) {
           <div class="aviso ok">
-            Orden <strong>#{{ orden.id }}</strong> creada. Te llegará un correo de confirmación.
+            Compra enviada ({{ c.unidades }} productos, {{ c.total | currency: 'CLP' : 'symbol-narrow' : '1.0-0' }}).
+            Tu orden se está creando y te llegará un correo de confirmación.
             <a routerLink="/mis-ordenes">Ver mis órdenes →</a>
           </div>
         }
@@ -78,59 +84,79 @@ const PRODUCTOS: Producto[] = [
     </div>
   `,
 })
-export class Catalogo {
+export class Catalogo implements OnInit {
   private readonly auth = inject(AuthService);
-  private readonly ordenes = inject(OrdenesService);
+  private readonly api = inject(CarritoService);
 
   protected readonly productos = PRODUCTOS;
-  private readonly carrito = signal<Record<number, number>>({});
+  protected readonly carrito = signal<Carrito>(CARRITO_VACIO);
+  protected readonly cargando = signal(true);
+  protected readonly ocupado = signal(false);
   protected readonly enviando = signal(false);
-  protected readonly ordenCreada = signal<Orden | null>(null);
+  protected readonly compra = signal<CheckoutResponse | null>(null);
   protected readonly error = signal<string | null>(null);
 
-  protected readonly lineas = computed(() =>
-    this.productos
-      .filter((p) => (this.carrito()[p.id] ?? 0) > 0)
-      .map((p) => ({ producto: p, cantidad: this.carrito()[p.id] ?? 0 })),
-  );
-
-  protected readonly total = computed(() =>
-    this.lineas().reduce((suma, l) => suma + l.producto.precio * l.cantidad, 0),
-  );
-
-  protected agregar(id: number): void {
-    this.carrito.update((c) => ({ ...c, [id]: (c[id] ?? 0) + 1 }));
+  ngOnInit(): void {
+    this.api.obtener().subscribe({
+      next: (c) => {
+        this.carrito.set(c);
+        this.cargando.set(false);
+      },
+      error: (err: unknown) => {
+        this.error.set(mensajeDeError(err));
+        this.cargando.set(false);
+      },
+    });
   }
 
-  protected quitar(id: number): void {
-    this.carrito.update((c) => ({ ...c, [id]: Math.max((c[id] ?? 0) - 1, 0) }));
+  protected agregar(producto: Producto): void {
+    this.compra.set(null);
+    this.ejecutar(this.api.agregar(producto));
+  }
+
+  protected agregarPorId(productoId: number): void {
+    const producto = this.productos.find((p) => p.id === productoId);
+    if (producto) this.agregar(producto);
+  }
+
+  protected quitar(productoId: number): void {
+    this.ejecutar(this.api.quitarUna(productoId));
   }
 
   protected comprar(): void {
+    this.ocupado.set(true);
     this.enviando.set(true);
     this.error.set(null);
-    this.ordenCreada.set(null);
+    this.compra.set(null);
 
-    this.ordenes
-      .crear({
-        clienteEmail: this.auth.email(),
-        items: this.lineas().map((l) => ({
-          productoId: l.producto.id,
-          nombreProducto: l.producto.nombre,
-          cantidad: l.cantidad,
-          precioUnitario: l.producto.precio,
-        })),
-      })
-      .subscribe({
-        next: (orden) => {
-          this.ordenCreada.set(orden);
-          this.carrito.set({});
-          this.enviando.set(false);
-        },
-        error: (err: unknown) => {
-          this.error.set(mensajeDeError(err));
-          this.enviando.set(false);
-        },
-      });
+    this.api.checkout(this.auth.email()).subscribe({
+      next: (respuesta) => {
+        this.compra.set(respuesta);
+        this.carrito.set(CARRITO_VACIO);
+        this.ocupado.set(false);
+        this.enviando.set(false);
+      },
+      error: (err: unknown) => {
+        this.error.set(mensajeDeError(err));
+        this.ocupado.set(false);
+        this.enviando.set(false);
+      },
+    });
+  }
+
+  /** Llama al carrito-service y reemplaza el carrito con la respuesta del backend */
+  private ejecutar(peticion: Observable<Carrito>): void {
+    this.ocupado.set(true);
+    this.error.set(null);
+    peticion.subscribe({
+      next: (c) => {
+        this.carrito.set(c);
+        this.ocupado.set(false);
+      },
+      error: (err: unknown) => {
+        this.error.set(mensajeDeError(err));
+        this.ocupado.set(false);
+      },
+    });
   }
 }

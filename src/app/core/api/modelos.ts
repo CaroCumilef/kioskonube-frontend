@@ -39,3 +39,24 @@ export interface Producto {
   precio: number;
   icono: string;
 }
+
+export interface ItemCarrito {
+  productoId: number;
+  nombreProducto: string;
+  cantidad: number;
+  precioUnitario: number;
+  subtotal: number;
+}
+
+export interface Carrito {
+  items: ItemCarrito[];
+  unidades: number;
+  total: number;
+}
+
+export interface CheckoutResponse {
+  estado: string;
+  unidades: number;
+  total: number;
+  fecha: string;
+}

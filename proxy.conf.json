@@ -10,5 +10,11 @@
     "secure": true,
     "changeOrigin": true,
     "logLevel": "info"
+  },
+  "/carrito": {
+    "target": "https://dhbzn4b51f.execute-api.us-east-1.amazonaws.com",
+    "secure": true,
+    "changeOrigin": true,
+    "logLevel": "info"
   }
 }
